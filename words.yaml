@@ -1,0 +1,93 @@
+---
+
+telegraph:
+  - telegraph
+  - telegraphs
+  - telegram
+  - telegrams
+
+telephone:
+  - telephone
+  - telephones
+  - phone
+  - phones
+  - dialed
+
+train:
+  - trains
+  - locomotive
+  - locomotives
+  - railway
+  - railways
+  - railyard
+  - railyards
+  - railroad
+  - railroads
+  - railcar
+  - boxcar
+  - boxcars
+
+electricity:
+  - electricity
+  - electric
+  - electrics
+  - lightswitch
+
+radio:
+  - radio
+  - radios
+  - broadcaster
+  - broadcasters
+
+film:
+  - film
+  - films
+  - cinema
+  - cinemas
+  - movie
+  - movies
+  - cinematograph
+  - cinematographs
+
+automobile:
+  - automobile
+  - automobiles
+  - convertibles
+  - limousine
+  - limousines
+  - car
+  - cars
+
+airplane:
+  - airplane
+  - airplanes
+  - aeroplane
+  - aeroplanes
+  - airport
+  - airports
+  - cockpit
+  - pilot
+  - pilots
+  - plane
+  - planes
+
+television:
+  - television
+  - televisions
+  - tv
+  - tvs
+
+internet:
+  - internet
+  - cyberspace
+  - website
+  - websites
+  - online
+  - email
+  - emails
+
+computer:
+  - computer
+  - computers
+  - laptop
+  - laptops
