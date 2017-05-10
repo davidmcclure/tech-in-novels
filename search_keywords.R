@@ -49,6 +49,8 @@ SearchKeywords <- function(chicago.path, word.yaml.path, out.path) {
 
     }
 
+    print(path)
+
     return(row)
 
   })
@@ -58,4 +60,4 @@ SearchKeywords <- function(chicago.path, word.yaml.path, out.path) {
 }
 
 
-SearchKeywords('../data/technologies', 'words.yaml', 'groups.csv')
+SearchKeywords('/scratch/PI/malgeehe/data/stacks/ext/chicago', 'words.yaml', 'groups.csv')
