@@ -9,70 +9,76 @@ from pyspark.sql import SparkSession
 from tech import Novel, WordList
 
 
-class Job:
+def count_keywords(novel, words):
+    """Accumulate keyword counts.
 
-    def __init__(self, sc=None, spark=None):
-        """Initialize or set session and context.
+    Args:
+        novel (Novel)
+        words (WordList)
 
-        Args:
-            sc (SparkContext)
-            spark (SparkSession)
-        """
-        if not sc:
-            sc = SparkContext()
+    Returns: (word row, category row)
+    """
+    word_counts = novel.count_keywords(words.word_set())
 
-        if not spark:
-            spark = SparkSession(sc).builder.getOrCreate()
+    # Shared novel metadata.
+    metadata = dict(
+        _title=novel.title,
+        _auth_last=novel.authLast,
+        _auth_first=novel.authFirst,
+        _year=novel.publDate,
+    )
 
-        self.sc = sc
-        self.spark = spark
+    word_row = {**metadata, **word_counts}
 
+    cat_counts = {key: 0 for key in words.keys()}
 
-class CountKeywords(Job):
+    # Merge category totals.
+    for cat, terms in words.items():
+        for term in terms:
+            cat_counts[cat] += word_counts[term]
 
-    def __call__(self, novels_path, words):
-        """Count technology keywords in Chicago.
+    cat_row = {**metadata, **cat_counts}
 
-        Args:
-            novels_path (str)
-            words (set)
-        """
-        df = self.spark.read.parquet(novels_path)
-
-        counts = (
-            df.rdd.map(Novel)
-            .map(lambda n: dict(
-                _title=n.title,
-                _auth_last=n.authLast,
-                _auth_first=n.authFirst,
-                _year=n.publDate,
-                **n.count_keywords(words)
-            ))
-        )
-
-        return counts.collect()
+    return word_row, cat_row
 
 
 @click.command()
 @click.argument('novels_path', type=click.Path())
 @click.argument('words_path', type=click.Path())
 @click.argument('word_csv_fh', type=click.File('w'))
-def main(novels_path, words_path, word_csv_fh):
+@click.argument('cat_csv_fh', type=click.File('w'))
+def main(novels_path, words_path, word_csv_fh, cat_csv_fh):
     """Count technology keywords in Chicago.
     """
+    sc = SparkContext()
+    spark = SparkSession(sc).builder.getOrCreate()
+
     # Parse word list.
     words = WordList.from_file(words_path)
 
-    # Count words.
-    job = CountKeywords()
-    counts = job(novels_path, words.word_set())
+    # Count keywords.
+    counts = (
+        spark.read.parquet(novels_path)
+        .rdd.map(Novel)
+        .map(lambda n: count_keywords(n, words))
+        .collect()
+    )
 
-    fieldnames = list(counts[0].keys())
-    writer = csv.DictWriter(word_csv_fh, fieldnames)
-    writer.writeheader()
+    print(counts)
 
-    for row in counts:
-        writer.writerow(row)
+    # Write CSV.
+
+    word_fnames = list(counts[0][0].keys())
+    word_writer = csv.DictWriter(word_csv_fh, word_fnames)
+    word_writer.writeheader()
+
+    cat_fnames = list(counts[0][1].keys())
+    cat_writer = csv.DictWriter(cat_csv_fh, cat_fnames)
+    cat_writer.writeheader()
+
+    for word_row, cat_row in counts:
+        word_writer.writerow(word_row)
+        cat_writer.writerow(cat_row)
 
 
 if __name__ == '__main__':
