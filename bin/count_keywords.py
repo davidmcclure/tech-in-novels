@@ -57,22 +57,22 @@ def main(novels_path, words_path, word_csv_fh, cat_csv_fh):
     words = WordList.from_file(words_path)
 
     # Count keywords.
-    counts = (
+    rows = (
         spark.read.parquet(novels_path)
         .rdd.map(Novel)
         .map(lambda n: count_keywords(n, words))
         .collect()
     )
 
-    print(counts)
+    word_rows, cat_rows = zip(*rows)
 
     # Write CSV.
 
-    word_fnames = list(counts[0][0].keys())
+    word_fnames = list(word_rows[0].keys())
     word_writer = csv.DictWriter(word_csv_fh, word_fnames)
     word_writer.writeheader()
 
-    cat_fnames = list(counts[0][1].keys())
+    cat_fnames = list(cat_rows[1].keys())
     cat_writer = csv.DictWriter(cat_csv_fh, cat_fnames)
     cat_writer.writeheader()
 
