@@ -2,8 +2,18 @@
 
 import attr
 import functools
+import yaml
 
 from collections import Counter
+
+
+def with_model(model_cls):
+    def outer(f):
+        @functools.wraps(f)
+        def inner(row, *args, **kwargs):
+            return f(model_cls(row), *args, **kwargs)
+        return inner
+    return outer
 
 
 @attr.s
@@ -37,13 +47,19 @@ class Novel(Model):
         return counts
 
 
-def with_model(model_cls):
-    def outer(f):
-        @functools.wraps(f)
-        def inner(row, *args, **kwargs):
-            return f(model_cls(row), *args, **kwargs)
-        return inner
-    return outer
+class WordList(dict):
+
+    @classmethod
+    def from_file(cls, path):
+        with open(path) as fh:
+            return cls(yaml.load(fh))
+
+    def word_set(self):
+        """Get a flat set of keywords.
+
+        Returns: set
+        """
+        return set([w for wl in list(self.values()) for w in wl])
 
 
 @with_model(Novel)
