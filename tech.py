@@ -38,7 +38,7 @@ class Novel(Model):
         Args:
             words (set)
         """
-        counts = Counter()
+        counts = {word: 0 for word in words}
 
         for t in self.tokens:
             if t.token in words:

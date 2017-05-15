@@ -4,7 +4,7 @@ import click
 import csv
 
 from pyspark import SparkContext
-from pyspark.sql import SparkSession, Row
+from pyspark.sql import SparkSession
 
 from tech import Novel, WordList
 
@@ -41,12 +41,12 @@ class CountKeywords(Job):
 
         counts = (
             df.rdd.map(Novel)
-            .map(lambda n: Row(
-                title=n.title,
-                auth_last=n.authLast,
-                auth_first=n.authFirst,
-                year=n.publDate,
-                counts=n.count_keywords(words)
+            .map(lambda n: dict(
+                _title=n.title,
+                _auth_last=n.authLast,
+                _auth_first=n.authFirst,
+                _year=n.publDate,
+                **n.count_keywords(words)
             ))
         )
 
@@ -56,8 +56,8 @@ class CountKeywords(Job):
 @click.command()
 @click.argument('novels_path', type=click.Path())
 @click.argument('words_path', type=click.Path())
-@click.argument('term_csv_fh', type=click.File())
-def main(novels_path, words_path, term_csv_fh):
+@click.argument('word_csv_fh', type=click.File('w'))
+def main(novels_path, words_path, word_csv_fh):
     """Count technology keywords in Chicago.
     """
     # Parse word list.
@@ -67,12 +67,12 @@ def main(novels_path, words_path, term_csv_fh):
     job = CountKeywords()
     counts = job(novels_path, words.word_set())
 
-    writer = csv.DictWriter(term_csv_fh)
+    fieldnames = list(counts[0].keys())
+    writer = csv.DictWriter(word_csv_fh, fieldnames)
+    writer.writeheader()
 
     for row in counts:
-        writer.writerow()
-
-    print(counts)
+        writer.writerow(row)
 
 
 if __name__ == '__main__':
