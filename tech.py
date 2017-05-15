@@ -60,13 +60,3 @@ class WordList(dict):
         Returns: set
         """
         return set([w for wl in list(self.values()) for w in wl])
-
-
-@with_model(Novel)
-def get_full_name(novel):
-    return novel.full_name()
-
-
-@with_model(Novel)
-def count_keywords(novel, words):
-    return novel.count_keywords(words)
