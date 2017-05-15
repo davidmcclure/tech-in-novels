@@ -5,7 +5,7 @@ import click
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
 
-from tech import Novel, get_full_name
+from tech import Novel, get_full_name, count_keywords
 
 
 class Job:
@@ -34,7 +34,14 @@ class CountKeywords(Job):
         """
         novels = self.spark.read.parquet(novels_path)
 
-        print(novels.rdd.map(get_full_name).collect())
+        words = set(['god', 'man'])
+
+        counts = (
+            novels.rdd.map(lambda n: count_keywords(n, words))
+            .reduce(lambda a, b: a + b)
+        )
+
+        print(counts)
 
 
 @click.command()
