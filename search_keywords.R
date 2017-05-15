@@ -50,6 +50,7 @@ SearchKeywords <- function(chicago.path, word.yaml.path, out.path) {
     }
 
     print(path)
+    print(Sys.time())
 
     return(row)
 
