@@ -1,19 +1,7 @@
 
 
 import attr
-import functools
 import yaml
-
-from collections import Counter
-
-
-def with_model(model_cls):
-    def outer(f):
-        @functools.wraps(f)
-        def inner(row, *args, **kwargs):
-            return f(model_cls(row), *args, **kwargs)
-        return inner
-    return outer
 
 
 @attr.s
@@ -29,32 +17,37 @@ class Model:
 
 class Novel(Model):
 
-    def full_name(self):
-        return '{} {}'.format(self.authFirst, self.authLast)
-
-    def count_keywords(self, words):
+    def count_keywords(self, keywords):
         """Count occurrences of each keyword in a list.
 
         Args:
-            words (set)
+            word_list (WordList)
         """
-        counts = {word: 0 for word in words}
+        words = keywords.flat_words()
+
+        w_counts = {w: 0 for w in words}
 
         for t in self.tokens:
             if t.token in words:
-                counts[t.token] += 1
+                w_counts[t.token] += 1
 
-        return counts
+        c_counts = {c: 0 for c in keywords.keys()}
+
+        for cat, cat_words in keywords.items():
+            for word in cat_words:
+                c_counts[cat] += w_counts[word]
+
+        return c_counts, w_counts
 
 
-class WordList(dict):
+class Keywords(dict):
 
     @classmethod
     def from_file(cls, path):
         with open(path) as fh:
             return cls(yaml.load(fh))
 
-    def word_set(self):
+    def flat_words(self):
         """Get a flat set of keywords.
 
         Returns: set

@@ -6,19 +6,19 @@ import csv
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
 
-from tech import Novel, WordList
+from tech import Novel, Keywords
 
 
-def count_keywords(novel, words):
+def count_keywords(novel, keywords):
     """Accumulate keyword counts.
 
     Args:
         novel (Novel)
-        words (WordList)
+        keywords (Keywords)
 
     Returns: (word row, category row)
     """
-    word_counts = novel.count_keywords(words.word_set())
+    c_counts, w_counts = novel.count_keywords(keywords)
 
     # Shared novel metadata.
     metadata = dict(
@@ -28,33 +28,25 @@ def count_keywords(novel, words):
         _year=novel.publDate,
     )
 
-    word_row = {**metadata, **word_counts}
+    c_row = {**metadata, **c_counts}
+    w_row = {**metadata, **w_counts}
 
-    cat_counts = {key: 0 for key in words.keys()}
-
-    # Merge category totals.
-    for cat, terms in words.items():
-        for term in terms:
-            cat_counts[cat] += word_counts[term]
-
-    cat_row = {**metadata, **cat_counts}
-
-    return word_row, cat_row
+    return w_row, c_row
 
 
 @click.command()
 @click.argument('novels_path', type=click.Path())
 @click.argument('words_path', type=click.Path())
-@click.argument('word_csv_fh', type=click.File('w'))
-@click.argument('cat_csv_fh', type=click.File('w'))
-def main(novels_path, words_path, word_csv_fh, cat_csv_fh):
+@click.argument('w_csv_fh', type=click.File('w'))
+@click.argument('c_csv_fh', type=click.File('w'))
+def main(novels_path, words_path, w_csv_fh, c_csv_fh):
     """Count technology keywords in Chicago.
     """
     sc = SparkContext()
     spark = SparkSession(sc).builder.getOrCreate()
 
     # Parse word list.
-    words = WordList.from_file(words_path)
+    words = Keywords.from_file(words_path)
 
     # Count keywords.
     rows = (
@@ -64,21 +56,23 @@ def main(novels_path, words_path, word_csv_fh, cat_csv_fh):
         .collect()
     )
 
-    word_rows, cat_rows = zip(*rows)
+    w_rows, c_rows = zip(*rows)
 
     # Write CSV.
 
-    word_fnames = list(word_rows[0].keys())
-    word_writer = csv.DictWriter(word_csv_fh, word_fnames)
-    word_writer.writeheader()
+    w_fnames = list(w_rows[0].keys())
+    w_writer = csv.DictWriter(w_csv_fh, w_fnames)
+    w_writer.writeheader()
 
-    cat_fnames = list(cat_rows[1].keys())
-    cat_writer = csv.DictWriter(cat_csv_fh, cat_fnames)
-    cat_writer.writeheader()
+    for row in w_rows:
+        w_writer.writerow(row)
 
-    for word_row, cat_row in counts:
-        word_writer.writerow(word_row)
-        cat_writer.writerow(cat_row)
+    c_fnames = list(c_rows[1].keys())
+    c_writer = csv.DictWriter(c_csv_fh, c_fnames)
+    c_writer.writeheader()
+
+    for row in c_rows:
+        c_writer.writerow(row)
 
 
 if __name__ == '__main__':
