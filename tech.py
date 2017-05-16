@@ -17,6 +17,11 @@ class Model:
 
 class Novel(Model):
 
+    def full_name(self):
+        """Form complete name.
+        """
+        return '{} {}'.format(self.authFirst, self.authLast)
+
     def count_keywords(self, keywords):
         """Count occurrences of each keyword in a list.
 
