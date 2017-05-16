@@ -21,7 +21,7 @@ class Novel(Model):
         """Count occurrences of each keyword in a list.
 
         Args:
-            word_list (WordList)
+            keywords (Keywords)
         """
         words = keywords.flat_words()
 
