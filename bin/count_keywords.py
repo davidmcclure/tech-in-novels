@@ -6,32 +6,7 @@ import csv
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
 
-from tech import Novel, Keywords
-
-
-def count_keywords(novel, keywords):
-    """Accumulate keyword counts.
-
-    Args:
-        novel (Novel)
-        keywords (Keywords)
-
-    Returns: (word row, category row)
-    """
-    c_counts, w_counts = novel.count_keywords(keywords)
-
-    # Shared novel metadata.
-    metadata = dict(
-        _title=novel.title,
-        _auth_last=novel.authLast,
-        _auth_first=novel.authFirst,
-        _year=novel.publDate,
-    )
-
-    c_row = {**metadata, **c_counts}
-    w_row = {**metadata, **w_counts}
-
-    return w_row, c_row
+from tech_in_novels import Novel, Keywords
 
 
 @click.command()
@@ -46,13 +21,13 @@ def main(novels_path, words_path, w_csv_fh, c_csv_fh):
     spark = SparkSession(sc).builder.getOrCreate()
 
     # Parse word list.
-    words = Keywords.from_file(words_path)
+    keywords = Keywords.from_file(words_path)
 
     # Count keywords.
     rows = (
         spark.read.parquet(novels_path)
         .rdd.map(Novel)
-        .map(lambda n: count_keywords(n, words))
+        .map(lambda n: n.csv_rows(keywords))
         .collect()
     )
 

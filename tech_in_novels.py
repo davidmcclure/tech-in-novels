@@ -44,6 +44,27 @@ class Novel(Model):
 
         return c_counts, w_counts
 
+    def csv_rows(self, keywords):
+        """Count keywords and assemble CSV rows.
+
+        Args:
+            keywords (Keywords)
+        """
+        c_counts, w_counts = self.count_keywords(keywords)
+
+        # Shared novel metadata.
+        metadata = dict(
+            _title=self.title,
+            _auth_last=self.authLast,
+            _auth_first=self.authFirst,
+            _year=self.publDate,
+        )
+
+        c_row = {**metadata, **c_counts}
+        w_row = {**metadata, **w_counts}
+
+        return w_row, c_row
+
 
 class Keywords(dict):
 
