@@ -60,8 +60,11 @@ class Novel(Model):
             _year=self.publDate,
         )
 
-        c_row = {**metadata, **c_counts}
-        w_row = {**metadata, **w_counts}
+        c_row = metadata.copy()
+        c_row.update(c_counts)
+
+        w_row = metadata.copy()
+        w_row.update(w_counts)
 
         return w_row, c_row
 

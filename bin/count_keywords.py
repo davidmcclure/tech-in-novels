@@ -12,8 +12,8 @@ from tech_in_novels import Novel, Keywords
 @click.command()
 @click.argument('novels_path', type=click.Path())
 @click.argument('words_path', type=click.Path())
-@click.argument('w_csv_fh', type=click.File('w'))
 @click.argument('c_csv_fh', type=click.File('w'))
+@click.argument('w_csv_fh', type=click.File('w'))
 def main(novels_path, words_path, w_csv_fh, c_csv_fh):
     """Count technology keywords in Chicago.
     """
