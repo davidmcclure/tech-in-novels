@@ -26,7 +26,7 @@ def main(novels_path, words_path, w_csv_fh, c_csv_fh):
     # Count keywords.
     rows = (
         spark.read.parquet(novels_path)
-        .limit(100) # TODO|dev
+        .limit(1000) # TODO|dev
         .rdd.map(Novel)
         .map(lambda n: n.csv_rows(keywords))
         .collect()
